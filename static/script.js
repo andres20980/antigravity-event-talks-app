@@ -7,9 +7,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCloseDrawer = document.getElementById('btn-close-drawer');
     const btnSendTweet = document.getElementById('btn-send-tweet');
     const charCount = document.getElementById('char-count');
+    
+    // Nuevos elementos
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    const themeToggleIcon = document.getElementById('theme-toggle-icon');
+    const btnExportCsv = document.getElementById('btn-export-csv');
 
     let selectedNotes = new Set();
     let allNotes = [];
+
+    // Inicializar Tema desde localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggleIcon.textContent = '🌙';
+    } else {
+        themeToggleIcon.textContent = '☀️';
+    }
 
     // Cargar notas al inicio
     fetchNotes();
@@ -19,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     btnCloseDrawer.addEventListener('click', () => {
         tweetDrawer.classList.add('hidden');
-        // Desmarcar todas las notas si se cierra el panel de tweet
         document.querySelectorAll('.note-card').forEach(card => {
             card.classList.remove('selected');
             const checkbox = card.querySelector('.select-checkbox');
@@ -36,6 +49,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
             window.open(twitterUrl, '_blank');
         }
+    });
+
+    // Evento de cambio de tema (Oscuro/Claro)
+    btnThemeToggle.addEventListener('click', () => {
+        const isLightTheme = document.body.classList.toggle('light-theme');
+        if (isLightTheme) {
+            themeToggleIcon.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+        } else {
+            themeToggleIcon.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+
+    // Evento de Exportación CSV
+    btnExportCsv.addEventListener('click', () => {
+        if (allNotes.length === 0) {
+            alert('No hay notas disponibles para exportar.');
+            return;
+        }
+        exportToCSV(allNotes);
     });
 
     // Obtener las notas del backend
@@ -108,15 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="checkbox" class="select-checkbox">
                         <span class="select-label">Seleccionar para Tweet</span>
                     </label>
-                    <button class="btn-card-tweet" aria-label="Preparar Tweet para esta nota">
-                        <svg class="twitter-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-                        Twittear esta
-                    </button>
+                    <div class="card-actions-right">
+                        <button class="btn-card-copy" aria-label="Copiar nota al portapapeles">
+                            <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span class="copy-text">Copiar</span>
+                        </button>
+                        <button class="btn-card-tweet" aria-label="Preparar Tweet para esta nota">
+                            <svg class="twitter-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                            Twittear esta
+                        </button>
+                    </div>
                 </div>
             `;
 
             const checkbox = card.querySelector('.select-checkbox');
             const btnCardTweet = card.querySelector('.btn-card-tweet');
+            const btnCardCopy = card.querySelector('.btn-card-copy');
 
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
@@ -133,8 +174,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 prepareTweetFromSingleNote(note);
             });
 
+            btnCardCopy.addEventListener('click', () => {
+                copyNoteToClipboard(note, btnCardCopy);
+            });
+
             notesContainer.appendChild(card);
         });
+    }
+
+    // Copiar nota al portapapeles
+    function copyNoteToClipboard(note, buttonElement) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = note.content;
+        let textContent = tempDiv.innerText || tempDiv.textContent || '';
+        textContent = textContent.replace(/\s+/g, ' ').trim();
+
+        const fullText = `Fecha: ${note.updated}\nTítulo: ${note.title}\nDetalles:\n${textContent}`;
+
+        navigator.clipboard.writeText(fullText).then(() => {
+            const labelSpan = buttonElement.querySelector('.copy-text');
+            const originalText = labelSpan.textContent;
+            labelSpan.textContent = '¡Copiado!';
+            buttonElement.style.borderColor = 'var(--accent)';
+            buttonElement.style.color = 'var(--accent)';
+            
+            setTimeout(() => {
+                labelSpan.textContent = originalText;
+                buttonElement.style.borderColor = '';
+                buttonElement.style.color = '';
+            }, 2000);
+        }).catch(err => {
+            console.error('Error al copiar al portapapeles: ', err);
+            alert('No se pudo copiar el texto automáticamente.');
+        });
+    }
+
+    // Exportar notas de lanzamiento a CSV
+    function exportToCSV(releases) {
+        const headers = ['Fecha', 'Titulo', 'Detalle'];
+        const csvRows = [];
+        
+        // Agregar cabeceras
+        csvRows.push(headers.join(','));
+
+        releases.forEach(note => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = note.content;
+            let textContent = tempDiv.innerText || tempDiv.textContent || '';
+            textContent = textContent.replace(/\s+/g, ' ').trim();
+
+            const date = `"${note.updated.replace(/"/g, '""')}"`;
+            const title = `"${note.title.replace(/"/g, '""')}"`;
+            const detail = `"${textContent.replace(/"/g, '""')}"`;
+
+            csvRows.push([date, title, detail].join(','));
+        });
+
+        const csvContent = "\uFEFF" + csvRows.join('\n'); // BOM para soportar tildes en Excel
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'bigquery_release_notes.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // Preparar tweet a partir de una nota individual
