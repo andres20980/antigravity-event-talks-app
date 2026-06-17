@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas de Lanzamiento de BigQuery | Visor y Compartir</title>
+    <meta name="description" content="Visualiza las últimas notas de lanzamiento de Google Cloud BigQuery y compártelas de forma directa en Twitter.">
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-icon">📊</span>
+                <h1>BigQuery Release Notes</h1>
+            </div>
+            <button id="btn-refresh" class="btn-primary" aria-label="Actualizar notas de lanzamiento">
+                <span class="btn-text">Actualizar</span>
+                <span id="refresh-spinner" class="spinner hidden"></span>
+            </button>
+        </header>
+
+        <main class="app-content">
+            <section class="notes-section">
+                <div id="notes-container" class="notes-grid">
+                    <!-- Las tarjetas se insertarán dinámicamente aquí -->
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Panel flotante para twittear la selección -->
+        <div id="tweet-drawer" class="tweet-drawer hidden">
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <h3>Compartir en Twitter</h3>
+                    <button id="btn-close-drawer" class="btn-close" aria-label="Cerrar">&times;</button>
+                </div>
+                <div class="drawer-body">
+                    <textarea id="tweet-textarea" maxlength="280" placeholder="¿Qué está pasando con BigQuery?"></textarea>
+                    <div class="char-counter"><span id="char-count">0</span> / 280</div>
+                </div>
+                <div class="drawer-footer">
+                    <button id="btn-send-tweet" class="btn-tweet">
+                        <svg class="twitter-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                        Twittear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; 2026 BigQuery Release Notes Viewer. Desarrollado con Flask y HTML/JS/CSS puro.</p>
+        </footer>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Entorno virtual
+.venv/
+venv/
+ENV/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Configuración de editores/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Archivos del sistema
+Thumbs.db
+ehthumbs.db
+Desktop.ini
